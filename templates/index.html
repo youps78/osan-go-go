@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>분리수GO</title>
+    <!--
+    @file: index.html
+    @description: '분리수GO' 웹 애플리케이션의 메인 페이지입니다.
+                  사용자에게 학번 입력 필드를 제공하고, 현재 상위 3명의 랭킹을 표시합니다.
+                  학번 입력 후 카메라 페이지로 이동합니다.
+    @version: 1.0.0
+    @date: 2025-06-08
+    @author: 오산고 이현서
+
+    @changes:
+      - 1.0.0 (2025-06-08): 초기 버전. 학번 입력 폼, 랭킹 표시, 기본 스타일 및 JavaScript 로직 구현.
+                           주석 추가.
+    -->
+
+    <!-- 라이브러리 설치 방법:
+    이 웹 애플리케이션은 백엔드(Python Flask)와 통신하며, 프론트엔드에서는 별도의 라이브러리 설치가 필요 없습니다.
+    백엔드 라이브러리 설치는 프로젝트 루트 디렉토리에서 'pip install -r requirements.txt' 명령어를 사용합니다.
+    -->
+    <style>
+        /*
+        @section: Global Styles
+        @description: 웹 페이지 전체에 적용되는 기본 스타일입니다.
+                      폰트, 여백, 배경색 등을 설정합니다.
+        */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        /*
+        @section: Header Styles
+        @description: 페이지 상단 헤더 영역의 스타일입니다.
+                      학교 로고와 앱 제목을 포함하며, 중앙 정렬됩니다.
+        */
+        header {
+            background-color: #4CAF50; /* 초록색 배경 */
+            color: white; /* 흰색 텍스트 */
+            text-align: center;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /*
+        @section: Logo Styles
+        @description: 헤더 내 학교 로고 이미지의 스타일입니다.
+        */
+        .logo {
+            height: 50px; /* 로고 높이 */
+            margin-right: 15px; /* 로고와 제목 사이 간격 */
+        }
+        /*
+        @section: Container Layout
+        @description: 메인 콘텐츠 영역의 레이아웃을 정의합니다.
+                      랭킹 패널과 메인 패널을 가로로 배치합니다.
+        */
+        .container {
+            display: flex; /* Flexbox 레이아웃 */
+            max-width: 1200px; /* 최대 너비 제한 */
+            margin: 2rem auto; /* 상하 여백 및 가운데 정렬 */
+            padding: 0 1rem; /* 좌우 패딩 */
+        }
+        /*
+        @section: Ranking Panel Styles
+        @description: 랭킹 정보를 표시하는 좌측 패널의 스타일입니다.
+        */
+        .ranking-panel {
+            flex: 1; /* 유연한 너비 설정 */
+            background: white; /* 흰색 배경 */
+            padding: 1rem;
+            border-radius: 8px; /* 둥근 모서리 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 그림자 효과 */
+        }
+        /*
+        @section: Main Panel Styles
+        @description: 학번 입력 폼을 포함하는 우측 메인 패널의 스타일입니다.
+        */
+        .main-panel {
+            flex: 2; /* 랭킹 패널보다 두 배 넓게 */
+            margin-left: 2rem; /* 랭킹 패널과의 간격 */
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /*
+        @section: ID Form Styles
+        @description: 학번 입력 폼의 레이아웃 스타일입니다.
+        */
+        #idForm {
+            display: flex;
+            flex-direction: column; /* 세로 방향 배치 */
+            gap: 1rem; /* 요소 간 간격 */
+        }
+        /*
+        @section: Student ID Input Styles
+        @description: 학번 입력 필드의 스타일입니다.
+        */
+        #studentId {
+            padding: 0.8rem;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            text-align: center; /* 텍스트 가운데 정렬 */
+        }
+        /*
+        @section: Button Styles
+        @description: 모든 버튼에 적용되는 기본 스타일입니다.
+        */
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-size: 1.2rem;
+            border-radius: 4px;
+            cursor: pointer; /* 마우스 오버 시 포인터 변경 */
+        }
+        /*
+        @section: Error Message Styles
+        @description: 오류 메시지를 표시하는 영역의 스타일입니다.
+        */
+        .error {
+            color: red; /* 빨간색 텍스트 */
+            margin-top: 1rem;
+        }
+        /*
+        @section: Responsive Design
+        @description: 화면 너비가 768px 이하일 때 적용되는 반응형 스타일입니다.
+                      패널들을 세로로 배치합니다.
+        */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column; /* 세로 방향으로 변경 */
+            }
+            .main-panel {
+                margin-left: 0; /* 좌측 마진 제거 */
+                margin-top: 1rem; /* 상단 마진 추가 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!--
+    @section: Header Section
+    @description: 웹 페이지의 상단 헤더 영역입니다.
+                  학교 로고와 '분리수GO' 제목을 포함합니다.
+    -->
+    <header>
+        <img src="/static/images/logo.webp" alt="학교 로고" class="logo">
+        <h1>분리수GO</h1>
+    </header>
+
+    <!--
+    @section: Main Content Container
+    @description: 랭킹 패널과 학번 입력 패널을 포함하는 메인 콘텐츠 영역입니다.
+    -->
+    <div class="container">
+        <!--
+        @section: Ranking Panel
+        @description: 현재 상위 3명의 학생 랭킹을 표시하는 패널입니다.
+                      Flask 백엔드에서 전달받은 'ranking' 데이터를 사용하여 동적으로 렌더링됩니다.
+        -->
+        <div class="ranking-panel">
+            <h2>🏆 랭킹 TOP 3</h2>
+            <ol>
+                {% for student in ranking %}
+                <li>{{ student.student_id }} - {{ student.score }}점</li>
+                {% endfor %}
+            </ol>
+        </div>
+
+        <!--
+        @section: Main Panel - Student ID Input
+        @description: 사용자가 학번을 입력하고 다음 단계로 진행하는 폼을 포함하는 패널입니다.
+        -->
+        <div class="main-panel">
+            <!--
+            @element: 학번 입력 폼
+            @description: 사용자의 학번을 입력받는 폼입니다.
+                          입력된 학번은 백엔드의 '/submit_id' 엔드포인트로 전송됩니다.
+            -->
+            <form id="idForm" action="/submit_id" method="POST">
+                <!--
+                @element: 학번 입력 필드
+                @description: 5자리 숫자로 된 학번을 입력받는 텍스트 필드입니다.
+                              pattern 속성을 통해 5자리 숫자만 입력되도록 유효성 검사를 수행합니다.
+                @param: type (text) - 텍스트 입력 필드
+                @param: id (studentId) - DOM 요소 식별자
+                @param: name (student_id) - 폼 데이터 이름
+                @param: placeholder (학번을 입력하세요 (5자리 숫자)) - 입력 안내 메시지
+                @param: pattern (\d{5}) - 5자리 숫자 정규식
+                @param: maxlength (5) - 최대 5자 입력 제한
+                @param: required (true) - 필수 입력 필드
+                -->
+                <input type="text" id="studentId" name="student_id" 
+                       placeholder="학번을 입력하세요 (5자리 숫자)" 
+                       pattern="\d{5}" 
+                       maxlength="5"
+                       required>
+                <!--
+                @element: 시작하기 버튼
+                @description: 학번 입력 후 다음 단계로 진행하는 버튼입니다.
+                -->
+                <button type="submit">시작하기</button>
+            </form>
+            <!--
+            @element: 오류 메시지 표시 영역
+            @description: 학번 입력 시 발생하는 오류 메시지를 표시하는 영역입니다.
+                          JavaScript를 통해 동적으로 메시지가 업데이트됩니다.
+            -->
+            <div id="errorDisplay" class="error"></div>
+        </div>
+    </div>
+
+    <!--
+    @section: JavaScript Logic
+    @description: 학번 입력 폼의 제출을 처리하고, 입력된 학번을 백엔드로 전송하는 JavaScript 코드입니다.
+                  백엔드 응답에 따라 카메라 페이지로 리다이렉트하거나 오류 메시지를 표시합니다.
+    -->
+    <script>
+        /*
+        @function: 이벤트 리스너 (idForm 제출)
+        @description: 'idForm' 폼이 제출될 때 실행되는 비동기 함수입니다.
+                      기본 제출 동작을 막고, 폼 데이터를 비동기적으로 백엔드에 전송합니다.
+        @param: e (Event) - 제출 이벤트 객체
+        */
+        document.getElementById('idForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // 폼의 기본 제출 동작 방지
+            const formData = new FormData(e.target); // 폼 데이터 객체 생성
+            
+            // '/submit_id' 엔드포인트로 POST 요청 전송
+            const response = await fetch('/submit_id', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json(); // JSON 응답 파싱
+            if (response.ok) {
+                // 응답이 성공적일 경우, 학번을 쿼리 파라미터로 포함하여 카메라 페이지로 이동
+                window.location.href = `/camera?student_id=${result.student_id}`;
+            } else {
+                // 응답이 실패(오류)일 경우, 오류 메시지를 화면에 표시
+                document.getElementById('errorDisplay').textContent = result.error;
+            }
+        });
+
+        /*
+        @function: 이벤트 리스너 (studentId 입력)
+        @description: 'studentId' 입력 필드에 값이 입력될 때마다 실행되는 함수입니다.
+                      입력된 값에서 숫자가 아닌 문자를 제거하여 숫자만 입력되도록 강제합니다.
+        @param: e (Event) - 입력 이벤트 객체
+        */
+        document.getElementById('studentId').addEventListener('input', (e) => {
+            // 입력된 값에서 숫자가 아닌 모든 문자(\D)를 빈 문자열로 대체
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+    </script>
+</body>
+</html>
