@@ -1,17 +1,14 @@
 [
   {
     "student_id": "12345",
-    "score": 10,
-    "last_activity": "2025-06-08T17:37:05.711245"
+    "score": 10
   },
   {
-    "student_id": "22345",
-    "score": 0,
-    "last_activity": "2025-06-08T17:15:55.239701"
+    "student_id": "11111", 
+    "score": 20
   },
   {
-    "student_id": "12346",
-    "score": 0,
-    "last_activity": "2025-06-08T17:13:49.806257"
+    "student_id": "22222",
+    "score": 10
   }
 ]

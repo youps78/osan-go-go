@@ -226,31 +226,15 @@
                   백엔드 응답에 따라 카메라 페이지로 리다이렉트하거나 오류 메시지를 표시합니다.
     -->
     <script>
-        /*
-        @function: 이벤트 리스너 (idForm 제출)
-        @description: 'idForm' 폼이 제출될 때 실행되는 비동기 함수입니다.
-                      기본 제출 동작을 막고, 폼 데이터를 비동기적으로 백엔드에 전송합니다.
-        @param: e (Event) - 제출 이벤트 객체
-        */
-        document.getElementById('idForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); // 폼의 기본 제출 동작 방지
-            const formData = new FormData(e.target); // 폼 데이터 객체 생성
-            
-            // '/submit_id' 엔드포인트로 POST 요청 전송
-            const response = await fetch('/submit_id', {
-                method: 'POST',
-                body: formData
+            /*
+            @function: 이벤트 리스너 (idForm 제출)
+            @description: 'idForm' 폼이 제출될 때 기본 HTML 폼 제출을 사용합니다.
+                          백엔드에서 리다이렉트를 처리하도록 합니다.
+            */
+            document.getElementById('idForm').addEventListener('submit', function(e) {
+                // 기본 폼 제출 동작을 유지
+                // 백엔드에서 리다이렉트 처리
             });
-            
-            const result = await response.json(); // JSON 응답 파싱
-            if (response.ok) {
-                // 응답이 성공적일 경우, 학번을 쿼리 파라미터로 포함하여 카메라 페이지로 이동
-                window.location.href = `/camera?student_id=${result.student_id}`;
-            } else {
-                // 응답이 실패(오류)일 경우, 오류 메시지를 화면에 표시
-                document.getElementById('errorDisplay').textContent = result.error;
-            }
-        });
 
         /*
         @function: 이벤트 리스너 (studentId 입력)

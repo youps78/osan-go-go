@@ -3,320 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>분리수GO - 촬영</title>
-    <!--
-    @file: camera.html
-    @description: '분리수GO' 웹 애플리케이션의 카메라 촬영 페이지입니다.
-                  사용자의 웹캠을 통해 쓰레기 및 분리수거함 이미지를 캡처하고,
-                  백엔드로 전송하여 Teachable Machine 모델로 분석을 요청합니다.
-    @version: 1.0.0
-    @date: 2025-06-08
-    @author: 오산고 이현서
-
-    @changes:
-      - 1.0.0 (2025-06-08): 초기 버전. 카메라 스트림 표시, 이미지 캡처 및 백엔드 전송 로직 구현.
-                           주석 추가.
-    -->
-
-    <!-- 라이브러리 설치 방법:
-    이 웹 애플리케이션은 백엔드(Python Flask)와 통신하며, 프론트엔드에서는 별도의 라이브러리 설치가 필요 없습니다.
-    백엔드 라이브러리 설치는 프로젝트 루트 디렉토리에서 'pip install -r requirements.txt' 명령어를 사용합니다.
-    -->
-    <style>
-        /*
-        @section: Global Styles
-        @description: 웹 페이지 전체에 적용되는 기본 스타일입니다.
-                      폰트, 여백, 배경색 등을 설정하고, Flexbox를 사용하여 요소를 중앙에 배치합니다.
-        */
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh; /* 최소 높이를 뷰포트 높이로 설정 */
-        }
-        /*
-        @section: Header Styles
-        @description: 페이지 상단 헤더 영역의 스타일입니다.
-                      학교 로고와 앱 제목을 포함하며, 상단에 고정됩니다.
-        */
-        header {
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            padding: 1rem;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: fixed; /* 상단 고정 */
-            top: 0;
-            left: 0;
-            z-index: 1000; /* 다른 요소 위에 표시 */
-        }
-        /*
-        @section: Logo Styles
-        @description: 헤더 내 학교 로고 이미지의 스타일입니다.
-        */
-        .logo {
-            height: 50px;
-            margin-right: 15px;
-        }
-        /*
-        @section: Camera Container Styles
-        @description: 카메라 스트림과 컨트롤 요소를 포함하는 컨테이너의 스타일입니다.
-        */
-        .camera-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px; /* 컨테이너의 최대 너비 */
-            margin-top: 80px; /* 헤더 공간 확보 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        /*
-        @section: Video Stream Styles
-        @description: 웹캠 스트림을 표시하는 비디오 요소의 스타일입니다.
-        */
-        video {
-            width: 100%;
-            height: auto;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background-color: black; /* 비디오 로드 전 배경색 */
-        }
-        /*
-        @section: Canvas Styles
-        @description: 이미지 처리를 위해 사용되는 캔버스 요소의 스타일입니다.
-                      화면에는 표시되지 않습니다.
-        */
-        canvas {
-            display: none; /* 이미지 처리에만 사용되므로 숨김 */
-        }
-        /*
-        @section: Controls Styles
-        @description: 촬영 버튼 및 오류 메시지를 포함하는 컨트롤 영역의 스타일입니다.
-        */
-        .controls {
-            margin-top: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-        /*
-        @section: Button Styles
-        @description: 촬영 버튼의 스타일입니다.
-        */
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            font-size: 1.2rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        /*
-        @section: Message Styles
-        @description: 사용자에게 현재 단계를 안내하는 메시지 텍스트의 스타일입니다.
-        */
-        .message {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        /*
-        @section: Student Info Styles
-        @description: 학생 학번 및 현재 점수를 표시하는 정보 영역의 스타일입니다.
-        */
-        .student-info {
-            font-size: 1.2rem;
-            color: #555;
-            margin-top: 1rem;
-        }
-        /*
-        @section: Error Message Styles
-        @description: 오류 메시지를 표시하는 영역의 스타일입니다.
-        */
-        .error {
-            color: red;
-            margin-top: 1rem;
-        }
-    </style>
+    <title>쓰레기 분류 시스템</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
-    <!--
-    @section: Header Section
-    @description: 웹 페이지의 상단 헤더 영역입니다.
-                  학교 로고와 '분리수GO' 제목을 포함합니다.
-    -->
-    <header>
-        <img src="/static/images/logo.webp" alt="학교 로고" class="logo">
-        <h1>분리수GO</h1>
-    </header>
-
-    <!--
-    @section: Camera Content Container
-    @description: 카메라 스트림, 메시지, 컨트롤 버튼 등을 포함하는 메인 콘텐츠 영역입니다.
-    -->
-    <div class="camera-container">
-        <!--
-        @element: 학생 정보 표시
-        @description: 현재 로그인한 학생의 학번과 현재 점수를 표시합니다.
-                      Flask 백엔드에서 전달받은 데이터를 사용합니다.
-        -->
-        <div class="student-info">
-            학번: <span id="studentIdDisplay">{{ student_id }}</span> | 현재 점수: <span id="currentScoreDisplay">{{ current_score }}</span>점
+    <div class="container">
+        <h1>쓰레기 분류 시스템</h1>
+        <div id="errorDisplay" class="error-message"></div>
+        <div id="cameraMessage" class="camera-message"></div>
+        
+        <div class="camera-container">
+            <video id="cameraFeed" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
         </div>
-        <!--
-        @element: 카메라 안내 메시지
-        @description: 사용자에게 현재 촬영 단계를 안내하는 메시지입니다.
-                      JavaScript를 통해 동적으로 변경됩니다.
-        -->
-        <p class="message" id="cameraMessage">버릴 쓰레기를 촬영해주세요.</p>
-        <!--
-        @element: 비디오 스트림 영역
-        @description: 웹캠에서 실시간으로 받아오는 비디오 스트림을 표시하는 영역입니다.
-        -->
-        <video id="video" autoplay playsinline></video>
-        <!--
-        @element: 캔버스 (이미지 처리용)
-        @description: 비디오 스트림에서 이미지를 캡처하고, Teachable Machine 모델의 입력 크기에 맞춰
-                      이미지 처리를 수행하는 데 사용되는 숨겨진 캔버스입니다.
-        -->
-        <canvas id="canvas" width="224" height="224"></canvas>
-        <!--
-        @element: 컨트롤 버튼 영역
-        @description: 촬영 버튼과 오류 메시지 표시 영역을 포함합니다.
-        -->
-        <div class="controls">
-            <!--
-            @element: 촬영 버튼
-            @description: 이미지를 캡처하고 백엔드로 전송하는 버튼입니다.
-                          단계에 따라 텍스트가 '쓰레기 촬영' 또는 '분리수거함 촬영'으로 변경됩니다.
-            -->
-            <button id="captureButton">쓰레기 촬영</button>
-            <!--
-            @element: 오류 메시지 표시 영역
-            @description: 카메라 접근 실패 또는 이미지 처리 중 발생하는 오류 메시지를 표시하는 영역입니다.
-            -->
-            <div id="errorDisplay" class="error"></div>
-        </div>
+        
+        <button id="captureButton" class="capture-btn">쓰레기 촬영</button>
     </div>
 
-    <!--
-    @section: JavaScript Logic
-    @description: 웹캠 접근, 이미지 캡처, 백엔드 API 호출 및 단계별 UI 업데이트를 담당하는 JavaScript 코드입니다.
-    -->
     <script>
-        const video = document.getElementById('video');
+        const video = document.getElementById('cameraFeed');
         const canvas = document.getElementById('canvas');
-        const captureButton = document.getElementById('captureButton');
-        const cameraMessage = document.getElementById('cameraMessage');
         const errorDisplay = document.getElementById('errorDisplay');
-        const studentId = document.getElementById('studentIdDisplay').textContent; // 현재 학생 학번
+        const cameraMessage = document.getElementById('cameraMessage');
+        const captureButton = document.getElementById('captureButton');
+        let predictedTrashType = '';
+        let currentStep = 'first';
+        const studentId = new URLSearchParams(window.location.search).get('student_id');
 
-        let currentStep = 'first'; // 현재 촬영 단계: 'first' (쓰레기), 'second' (분리수거함)
-        let predictedTrashType = ''; // 1단계에서 예측된 쓰레기 종류 저장
-
-        /*
-        @function: setupCamera
-        @description: 웹캠에 접근하여 비디오 스트림을 'video' 요소에 연결합니다.
-                      카메라 접근에 실패할 경우 오류 메시지를 표시합니다.
-        @param: None
-        @returns: Promise<void>
-        */
-        /*
-        @function: setupCamera
-        @description: 웹캠에 접근하여 비디오 스트림을 'video' 요소에 연결합니다.
-                      카메라 접근에 실패할 경우 오류 메시지를 표시합니다.
-                      모바일 환경에서 navigator.mediaDevices가 정의되지 않을 수 있으므로,
-                      호출 전에 유효성을 검사합니다.
-        @param: None
-        @returns: Promise<void>
-        */
         async function setupCamera() {
-            // navigator.mediaDevices 및 getUserMedia 지원 여부 확인
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                errorDisplay.innerHTML = `
-                    카메라 접근을 지원하지 않거나, 보안 문제로 접근이 거부되었습니다.<br>
-                    (현재 HTTP 환경에서는 카메라 접근이 제한될 수 있습니다. HTTPS 환경에서 시도해주세요.)<br>
-                    브라우저 설정에서 카메라 권한이 허용되어 있는지 확인해주세요.
-                `;
-                console.error('카메라 접근 오류: navigator.mediaDevices.getUserMedia를 지원하지 않거나 보안 문제');
-                // 재시도 버튼 추가를 위해 captureButton을 재활용하거나 새 버튼 추가
-                captureButton.textContent = '카메라 재시도';
-                captureButton.onclick = setupCamera; // 버튼 클릭 시 setupCamera 다시 호출
-                return;
-            }
-
             try {
-                // 웹캠 스트림 가져오기 (facingMode 옵션 제거하여 호환성 개선 시도)
-                // 웹캠 스트림 가져오기 (후면 카메라 우선)
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                video.srcObject = stream; // 비디오 요소에 스트림 연결
-                video.play(); // 비디오 재생
-                // 카메라가 성공적으로 시작되면 버튼 기능을 다시 촬영으로 변경
-                captureButton.textContent = '쓰레기 촬영';
-                captureButton.onclick = handleCaptureButtonClick; // 원래 촬영 기능으로 복원
+                video.width = 224;
+                video.height = 224;
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 224, 
+                        height: 224,
+                        facingMode: 'environment'
+                    } 
+                });
+                video.srcObject = stream;
+                video.play();
+                console.log('카메라 스트리밍 시작됨');
             } catch (err) {
-                // 카메라 접근 실패 시 오류 메시지 표시
-                errorDisplay.innerHTML = `
-                    카메라 접근에 실패했습니다: ${err.message}<br>
-                    브라우저 설정에서 카메라 권한이 허용되어 있는지 확인해주세요.
-                `;
                 console.error('카메라 접근 오류:', err);
-                // 재시도 버튼 추가를 위해 captureButton을 재활용하거나 새 버튼 추가
-                captureButton.textContent = '카메라 재시도';
-                captureButton.onclick = setupCamera; // 버튼 클릭 시 setupCamera 다시 호출
+                errorDisplay.textContent = '카메라 접근에 실패했습니다. 권한을 확인해주세요.';
+                captureButton.disabled = true;
             }
         }
 
-        // captureButton의 원래 클릭 이벤트 리스너를 별도 함수로 분리
         function handleCaptureButtonClick() {
-            errorDisplay.textContent = ''; // 이전 오류 메시지 초기화
+            errorDisplay.textContent = '';
             const context = canvas.getContext('2d');
-            
-            // 비디오 프레임을 캔버스에 그리기 (Teachable Machine 입력 크기 224x224에 맞춰 리사이징)
             context.drawImage(video, 0, 0, 224, 224);
-            // 캔버스 이미지를 JPEG 형식의 Base64 데이터 URL로 변환
-            const imageDataURL = canvas.toDataURL('image/jpeg'); 
+            const imageDataURL = canvas.toDataURL('image/jpeg');
 
-            // 폼 데이터 생성 및 필요한 정보 추가
             const formData = new FormData();
             formData.append('student_id', studentId);
             formData.append('image', imageDataURL);
             formData.append('step', currentStep);
+
+            if (currentStep === 'second') {
+                formData.append('first_step_class', predictedTrashType);
+            }
 
             fetch('/process_image', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
-            .then(result => {
-                if (result.success) {
+            .then(data => {
+                if (data.error) {
+                    errorDisplay.textContent = data.error;
+                    return;
+                }
+                
+                if (data.success) {
                     if (currentStep === 'first') {
-                        predictedTrashType = result.predicted_class;
+                        predictedTrashType = data.bin_type;
                         cameraMessage.textContent = `이 쓰레기를 [${predictedTrashType}] 분리수거함에 넣고 촬영해주세요.`;
                         captureButton.textContent = '분리수거함 촬영';
                         currentStep = 'second';
                     } else if (currentStep === 'second') {
-                        window.location.href = `/result?student_id=${studentId}&status=success&score=${result.new_score}`;
+                        window.location.href = data.redirect_url;
                     }
                 } else {
-                    errorDisplay.textContent = `인식 실패: ${result.message || '알 수 없는 오류'}`;
-                    if (result.next_step === '재촬영') {
-                        // 재촬영 유도 (현재 단계 유지)
-                    } else {
-                        window.location.href = `/result?student_id=${studentId}&status=fail&reason=${result.reason || '알 수 없는 오류'}`;
-                    }
+                    errorDisplay.textContent = data.error || '알 수 없는 오류';
+                    window.location.href = data.redirect_url;
                 }
             })
             .catch(err => {
@@ -325,12 +99,13 @@
             });
         }
 
-        // 초기 버튼 클릭 이벤트 리스너 설정
+        // 이벤트 리스너 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCamera();
+            console.log('DOM 로드 완료, 카메라 초기화 시도');
+        });
+
         captureButton.addEventListener('click', handleCaptureButtonClick);
-
-
-        // 페이지 로드 시 카메라 설정 함수 호출
-        setupCamera();
     </script>
 </body>
 </html>
